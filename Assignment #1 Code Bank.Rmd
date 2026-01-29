@@ -1,0 +1,79 @@
+---
+title: 'Assignment #1'
+author: "Michael Mayne"
+date: "2026-01-25"
+output: html_document
+---
+
+This project is for Assignment#0 as the starting deliverable for Data 607.
+
+**Pre- Coding Approach**
+
+For this assignment I am going to go over the basics to upload and load a data frame for reproducibility and general use. I plan on using a data set from NYC open data as they tend to be simpler to comprehend and data often comes with a clear data dictionary unlike a lot of other sources. The data set I plan to use is NYC Wifi Hot Spot Locations.
+
+I will download the file on my local drive,then use filter, arrange functions to organize the data. Then i will drop an "unnecessary" columns such as the X, Y coordinates, Community Board numbers, NTA(Neighborhood Tabulation Area) and any non-descriptive identifiers. They are important but they do not display the information we need to understand the overview of the distribution of WiFi spots.
+
+```{r}
+# Loading Essential Libraries
+
+library(dplyr)
+library(tidyverse)
+
+```
+
+**Introduction to Data**
+
+This data set is an overview of the available Wifi hotspots that individuals will be able to explore around the city.The data contains 3319 observations and 29 identifying categories. It was collect and placed on NYC open data. The last update as of this assignment was September 23 2002.
+
+**Updated Purpose**
+
+For this assignment, I focused on pointing out the Wifispot that are accessible in Brooklyn. I have notice while in the city I use more of my mobile data than I expected. So it would be interesting to see how many places I could use wifi for free in Brooklyn and if that is a alternative to using data on my phone.
+
+```{r}
+
+#Upload Dataset from Github
+
+Wifi_NYC <- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/DATA/NYC_Wi-Fi_Hotspot_Locations_20260125.csv")
+
+show_col_types = FALSE
+```
+
+```{r}
+
+#Revealing the start of the Dataset
+head(Wifi_NYC)
+```
+
+Filtering Data
+
+As mentioned in my pre-coding approach. I wish to clear and filter this data and remove columns in order to make it easier for us to view our dataset. Although considering how big our dataset is, it will make more sense to focus on the columns I wish to keep instead. This also helps to address the large amount of duplicate columns provided in the raw data such a Boro Name, Boro Code, City, etc.
+
+```{r}
+#Keeping only Necessary Columns 
+Wifi_NYCSimple <- Wifi_NYC %>% select(Type, Name, Location, City, Location_T, SSID, Provider)
+```
+
+```{r}
+#Sorting Data for Visual Clarity (Limiting Site to Brooklyn)
+
+Wifi_Brooklyn <- Wifi_NYCSimple %>%
+  filter(City == "Brooklyn", Type == "Free")
+```
+
+Thus by filtering the data we get the final count of free WiFi spots in Brooklyn and the number of providers present. Equalling a total of 542 spots in total that are free and LinkNYC responsible for almost half of them.
+
+```{r}
+count(Wifi_Brooklyn)
+
+Wifi_Brooklyn %>%
+  count(Provider) %>%
+  arrange(n)
+```
+
+Conclusions
+
+As for the future prospects, it would be interesting to be able to place these wifi spots that I have filtered out onto a map , assuming that it wasn't already completed. It can prove as a visual indicator of the concentration of wifi spots, because I believe that the present spots are not evenly distributed. There is also a possibility to update this finding in this assignment if the original dataset can get updated again this year.
+
+End of Report
+
+\`\`\`
