@@ -1,0 +1,83 @@
+---
+title: "Assignment #2: Code Base"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Pre- Coding Approach
+
+For my assignment for 2A. I decided to carry out and organize 6 popular movies from the recent year to see what everyone thought of them. The movie I plan to choose are KPDH, Sinners, Avatar:Way of Fire, Captain America, New Avengers & Zootopia2. I do not keep up with movies that often. 
+
+After that I intend to use separate values by which rating is  addressed by what movie. I will clean the missing value by putting a replacement fill value which should be the summary of the prior score in the category. As an example. if the average of the other 4 scorers rate a move 3.5 than the 5 score will be a 3.5 as well. I will convert the cleaned data into Postgre SQL. 
+
+After organizing the data, I will load it as a tidyverse data frame and finalize my summary.
+
+```{r}
+library(tidyverse)
+```
+
+**Coding Base**
+
+The first part of this assignment was performed on the local machine using SQL, I found it more reliable to start with SQL and then take the queried data in R from my local database rather than attempt to organize the data in SQL directly.Since this part was mainly from SQL, the code will be in separate files contain my SQL queries on the Github.
+
+**Converting Data-set to R**
+
+After downloading said database onto my local drive, I downloaded the CSV for me to eventually manipulate the data and clean it.
+
+**Loading Data-set**
+
+```{r}
+Movies_Ratings <- read.csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/main/Movies.csv")
+
+```
+
+Cleaning Dataset:
+
+Our data set is mostly cleaned but it requires some changes. The biggest change being that the dataframe for the "ratings" is still treated a a character/string instead of numbers.
+
+```{r}
+
+#Convert Data frame rating from character to numeric - 
+
+Movies_Ratings$rating <- as.numeric(Movies_Ratings$rating, na.rm = TRUE)
+head(Movies_Ratings)
+
+Movies_Ratings%>%
+  count(rating)
+```
+
+After transforming the rating into numeric. We can now manipulate the values. To see the top rating as well as the counts. Most of the movie watched this year were rated highly with the most common score being a 4. There are some NA's, I have not watched way of water and there was a friend who did not watch K-Pop Demon Hunters.
+
+**Finding Summary and Means**
+
+```{r}
+
+Movies_Ratings %>% 
+  filter(movie_title == "KPDH") %>%
+  summarise(avg_MOV1 = mean(as.numeric(rating), na.rm= TRUE))
+  
+Movies_Ratings %>% 
+  filter(movie_title == "Sinners") %>%
+  summarise(avg_MOV2 = mean(as.numeric(rating), na.rm= TRUE))
+
+Movies_Ratings %>% 
+  filter(movie_title == "Zoo_2") %>%
+  summarise(avg_MOV3 = mean(as.numeric(rating), na.rm= TRUE))
+
+Movies_Ratings %>% 
+  filter(movie_title == "Captain_AmericaBNW") %>%
+  summarise(avg_MOV4 = mean(as.numeric(rating), na.rm= TRUE))
+
+Movies_Ratings %>% 
+  filter(movie_title == "Thunderbolts") %>%
+  summarise(avg_MOV5 = mean(as.numeric(rating), na.rm= TRUE))
+
+Movies_Ratings %>% 
+  filter(movie_title == "AvatarWOF") %>%
+  summarise(avg_MOV6 = mean(as.numeric(rating), na.rm= TRUE))
+```
+
+**Final rating & Conclusion**
+
+Due to the rating we can conclude that K-POP Demon Hunters and Sinner are tied for the first place movie by ratings. They both have an average rating of 4. Although Sinners received a 4 despite being watched by all 5 people, so you can argue in favor of Sinners being the "true" highest rated. The lowest overall score was Zootopia 2 which got the average score of 2.8.
