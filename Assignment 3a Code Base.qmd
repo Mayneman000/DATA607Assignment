@@ -1,0 +1,145 @@
+---
+title: "Assignment #3A"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Pre-Coding Approach
+
+The goal for this assignment appears to be straight forward. Essentially I plan on taking my data and chart at the end of last weeks assignment to create 3 different working variables. The first is Average Rating for All movies as a base. Then I simply need to get the Average scores for each individual watcher. Then finally the average score for the movies them selves.
+
+Once those are address , it is simply a matter of creating a formula that can take input of movie & watcher and create a viable response predicting their score.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+
+#Load the Ratings as before
+Movies_Ratings <- read.csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/main/Movies.csv")
+
+```
+
+## **Code Base (3A)**
+
+**Preparing the DataSet from Prior Assignment**
+
+To begin, I need to view the dataset that I mentioned in my prerecording approach, which is the Movies ratings for my friends before me.
+
+```{r}
+glimpse(Movies_Ratings)
+```
+
+**Adding a new Reviewer**
+
+Most of the people around me had a mix of movies and there was a situation when I past the original 4 recommended (excluding myself). The other people I interviewed wouldn't watch movies often or never cared too much to give a strong score. So to get a reasonable example of the Global estimate asked by this problem, I decided to create a viewer in order to get a reasonable mix of ratings. So this viewer "Norm" has only seen the 2 marvel movies "Captain America: Brave New World ", "Thunderbolts" and Sinners. He has not seen 3 movies so I used the global estimate method in order to see which movie he should watch. So below his ratings have been manually created in a dataframe.
+
+```{r}
+
+#Lets call him "Norm" for Normal Taste
+#Only watched 3 total movies
+
+watcher_name <- c("norm","norm", "norm", "norm", "norm", "norm")
+movie_title <- c("Sinners", "Zoo_2", "Captain_AmericaBNW", "Thunderbolts", "AvatarWOF", "KPDH")
+rating <- c("3", "NULL", "5", "4","NULL", "NULL") 
+
+
+Norm_Review <- data.frame(watcher_name, movie_title, rating)
+
+```
+
+I decided to keep everything in R for simplicity .
+
+So I added the new reviewer to our total chart my combining the new datasets.
+
+```{r}
+Full_movieRating <- bind_rows(Movies_Ratings, Norm_Review)
+
+Full_movieRating <- Full_movieRating %>%
+  mutate(num_rating = as.numeric(rating))%>%
+  select(-rating)
+
+Full_movieRating
+#We will keep the N/A as it will be important later. 
+
+print(Full_movieRating)
+```
+
+### **Calculating Average Scores of Movies & Users**
+
+I calcuated the average of the movie and users and made them in data tables. Instead of bind.rows, I decided to keep the dataframes for the movie's average and users average separate because it could cause confusion up front.
+
+```{r}
+# User Average Scores 
+
+watcher_average <- Full_movieRating %>%
+  group_by(watcher_name) %>%
+  summarize(avg_rating = mean(num_rating, na.rm = TRUE))
+
+print(watcher_average)
+
+```
+
+```{r}
+
+# The average (Global) score for each movie
+
+movie_average <- Full_movieRating %>%
+  group_by(movie_title) %>%
+  summarize(avg_score = mean(num_rating, na.rm = TRUE))
+
+print(movie_average)
+
+mean_movie_average = (mean(movie_average$avg_score))
+print(mean_movie_average)
+```
+
+We can take the prior information to add columns to the 2 dataframes in order to get the user *relative* average and the movie *relative* average.
+
+```{r}
+
+# Creating a column which shows the average score subtracted by the mean movie average
+
+movie_average <- movie_average %>%
+  mutate(movie_Total = avg_score- mean_movie_average)
+
+
+#
+watcher_average <- watcher_average %>%
+  mutate(person_bias = (avg_rating - mean_movie_average))
+
+
+```
+
+### **Creating a recommendation for Norm**
+
+Which of the remaining 3 movies would Norm want to watch based on his personal score and the score of the people around him? This requires taking the scores from the watchers average for Norm's bias. Then placing into code for the equation, although the equation could be mean(all movies) +norm's bias+ total movie, changes need to be made so we can see what movie matche which score in a table. Also it allows us to scale the table up if more movies are added.
+
+```{r}
+
+#Establishing Norm bias
+
+Norm_bias <- watcher_average %>%
+  filter(watcher_name == "norm")%>%
+  pull(person_bias)
+
+
+# Getting Norm estimated score based on the movies shown 
+
+Norm_Recommendation <- movie_average %>%
+  filter(movie_title %in% c("KPDH", "Zoo_2", "AvatarWOF")) %>%
+  mutate(Norm_est = mean_movie_average + Norm_bias + movie_Total) %>%
+  arrange(desc(Norm_est))
+
+print(Norm_Recommendation)
+
+
+```
+
+### **Conclusion**
+
+So using the code above it is possible to figure out the code and information for the best movie to recommend for norm was K-Pop Demon Hunters. This code can also be used to figure out the predicted score for other viewer for example Kathy's predicted score for KPDH. If given another attempt, I would like to see how to practice this code with a large survey group or at least a larger variety of movies.
+
+-End of Report
