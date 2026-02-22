@@ -1,0 +1,164 @@
+---
+title: "Project #1"
+format: html
+editor: visual
+---
+
+## Project #1
+
+### Project \# 1- Code Approach
+
+Honestly this is my first time taking information from a raw text file in this format to use for data cleaning. So I was unclear about the method in which to approach this so I believe i can do ai assistance to break down how to approach the cleaning the data while excluding the dashes which is the largest issue I am finding upon looking at the data.
+
+```{r}
+library(tidyverse)
+```
+
+### Project #1 - Code Base
+
+**Collecting Data from txt to Rmarkdown:**
+
+Since the data cannot be collected using the readLines function using a URL. The function will have to be done via a local file.
+
+```{r}
+
+rawTournament <- readLines("tournamentinfo.txt")
+```
+
+```{r}
+cleanTournament <- rawTournament[-c(1:4)]
+
+cleanTournament <- str_replace_all(cleanTournament, "-","")
+
+print(cleanTournament)
+```
+
+**Separation base on Records & Ratings**
+
+I decided to leverage tidyverse in order to convert the frame work in a tibble after taking out most of the long dashes. I attempted to separate the row by even and odd but there was a bunch of left over rows that were blank as a result.
+
+```{r}
+cleanTournament <- tibble(raw_text = cleanTournament)
+
+#Remove 3rd blank rows 
+cleanTournament <- cleanTournament %>%
+  filter(row_number() %% 3 != 0)
+
+
+player_row <-cleanTournament %>%
+  filter(row_number() %% 2 == 1 )
+
+rating_row <- cleanTournament %>%
+  filter(row_number() %% 2 == 0 )
+
+```
+
+**Extracting data from Both data sets**
+
+1.  We need to collect player profile. This works by basically taking the pattern expressed by raw text and collecting any data that shows up after \\ or \| .
+
+```{r}
+
+# collecting player profiles ( name & total points)
+player_profile <- player_row %>%
+  mutate(
+     name = str_trim(str_split_i(raw_text, "\\|", 2)),
+     
+     total_points = as.numeric(str_split_i(raw_text, "\\|", 3)))
+
+
+player_record <-rating_row %>%
+  mutate(
+    state = str_trim(str_split_i(raw_text, "\\|", 1)),
+    rating_end = str_split_i(raw_text, "\\|", 2),
+    pre_rating = as.numeric(str_extract(raw_text, "(?<=R:\\s?)\\d+"))
+  )
+
+```
+
+```{r}
+# Combining datasets 
+
+Tournamentdata <- bind_cols(player_profile, player_record)
+
+glimpse(Tournamentdata)
+
+tournament_Data <- Tournamentdata %>%
+  select(name,total_points,state,pre_rating,rating_end)
+
+#adding a column in order to keep a record number as the original text file
+tournament_Data <- tournament_Data %>%
+  mutate(ID = row_number())
+```
+
+Now that give us a data farm with "almost" all of our data. Initial ratings, total points earned, state, name, and ID/ranking. The only value left is the average rating of opponents. Essentially this requires using the extract method from before but to focus on ID of each opponent than match with data.
+
+```{r}
+
+raw_numbers <- str_extract_all(player_profile$raw_text, "\\d+")
+
+opponent_ID <- lapply(raw_numbers, function(x) x[4:length(x)])
+
+glimpse(opponent_ID)
+```
+
+```{r}
+#calculate average
+
+
+full_ratings <- tournament_Data$pre_rating
+
+avg_opp_rating <- sapply(opponent_ID, function(ids) {
+  round(mean(full_ratings[as.numeric(ids)], na.rm = TRUE))
+}) 
+# conversion into numeric > collection of rating id and then mean
+#rounding data to the closest whole number
+
+avg_opp_rating <- round(avg_opp_rating, digits = 0)
+
+Avg_opp_Rating <- tibble(avg_opp_rating)
+
+```
+
+Finally we have our average app rating, so the final steps are to add it to the existing data set "tournament_Data"
+
+```{r}
+
+tournament_Data <- bind_cols(tournament_Data,Avg_opp_Rating)
+```
+
+```{r}
+
+tournament_Data <- tournament_Data %>%
+  select("ID" = ID, "Name" = name, "State" = state, "Total Points"= total_points, "Opponent Rating" = tournament_Data$Avg_opp_Rating)
+```
+
+**Finally writing the CSV**
+
+```{r}
+write.csv(tournament_Data, file = "PreparedChessinfo.csv")
+```
+
+### AI. Assistance
+
+There was use of Google Gemini for this project. I mainly use gemini in order to understand how to create the isolation format for the multiple dashes that was used inside the text. I intend to review the information again in order to understand how to approach a problem like this in the future.
+
+Minor Transcript:
+
+**"(\\\\s?\[\[:alpha:\]-\]+\\\\s?){2,3}"))**
+
+can you review the use of these pattern on last time \[Me\]
+
+The pattern
+
+`(\\s?[[:alpha:]-]+\\s?){2,3}` is a fairly robust way to capture player names that consist of **two or three words**, which is the standard format for the names in your chess dataset (e.g., "GARY HUA" or "PATRICK H SCHILLING").
+
+**Pattern Breakdown**
+
+-   **`(\\s? ... \\s?)`**: The `\\s?` at the beginning and end of the group matches an **optional space**. This is helpful because your text file uses fixed-width columns that often have "padding" spaces around the names.
+
+-   **`[[:alpha:]-]+`**: This is the core of the pattern. It matches **one or more** letters (`[:alpha:]`) or hyphens (`-`). Including the hyphen is important for players with hyphenated last names.
+
+-   **`{2,3}`**: This is a "bound" or quantifier that tells R to look for the preceding group **exactly two to three times**. This effectively captures "First Last" or "First Middle Last" name structures.
+
+End of Report.
