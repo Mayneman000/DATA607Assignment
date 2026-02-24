@@ -1,0 +1,16 @@
+---
+title: "Assignment #5A"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Assignment #5A
+
+### Pre Coding- Approach
+
+The approach for this assignment is pretty self explanatory but I first plan on copying the core data onto an Excel sheet and save as a CSV. Which i will load to R, I plan to collect the data. Then use the tidyverse function pivot_longer to set the table as a long format. I doubt tit will be clean at that stage so I will use filter + mutate to make additional columns that separate the value by on time and delayed as seen by the wide table given. Then finally create charts to express the % on time arrival for both airlines.
+
+```{r}
+library(tidyverse)
+```
