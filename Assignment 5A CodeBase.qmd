@@ -1,0 +1,184 @@
+---
+title: "Assignment #5A"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Assignment #5A
+
+### Pre Coding- Approach
+
+The approach for this assignment is pretty self explanatory but I first plan on copying the core data onto an Excel sheet and save as a CSV. Which i will load to R, I plan to collect the data. Then use the tidyverse function pivot_longer to set the table as a long format. I doubt tit will be clean at that stage so I will use filter + mutate to make additional columns that separate the value by on time and delayed as seen by the wide table given. Then finally create charts to express the % on time arrival for both airlines.
+
+```{r}
+library(tidyverse)
+```
+
+## Coding Base
+
+**Recreating the Dataset**
+
+Our data was created in excel and by making the value on the sheet with the gap and missing values as shown. The data was saved a CSV and loaded to the github reposititory. Then the data set was loaded below for access for my self and others.
+
+```{r}
+
+calAirline <- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/main/CalAirline.csv")
+
+print(calAirline)
+```
+
+**Get Rid of Unnecessary Rows**
+
+Using a simple cut function to remove the 3 row helps us in the long run as there is no vaible data in teh 3 row to lose. So it will honestly get in the way of our cleaning.
+
+```{r}
+
+calAirline <- calAirline [-3,]
+```
+
+```{r}
+print(calAirline)
+
+#Now we longer have a row of missing values
+```
+
+**Extending the Dataset:** The data set tends to repeat and have multiple column represent a value so, I intend to pivot the data set so that it does not come of as that long.
+
+```{r}
+calAirlineLong <- calAirline %>%
+  pivot_longer(
+    cols= !("...1": "...2"),
+    names_to = c("City"),
+    values_to = ("Count"),
+    values_drop_na = TRUE
+  )
+```
+
+Changing the name of the Air line columns, this changes the names of the columns to the airline and status instead of 1 & 2.
+
+```{r}
+
+calAirlineLong <- calAirlineLong %>%
+  rename("Airline"= "...1", "Status"= "...2") 
+
+calAirlineLong <- calAirlineLong %>%
+  fill("Airline", .direction = "down")
+  
+
+```
+
+```{r}
+calAirlineClean<- calAirlineLong
+
+print(calAirlineClean)
+```
+
+**Break to Load our CSV**
+
+The CSV will be publish on Github; but using this code anyone should be able to get access to their own copy of this cleaned data base by running the code here.
+
+```{r}
+write.csv(calAirlineClean, file = "Cal_Airline_Cleaned.csv")
+```
+
+**Descriptive Analysis**
+
+Now that our data is in tidy format, we can set up an analysis in order to understand the performance of our two airlines Alaska and AMWEST. Staring with their initial overall performance:
+
+Overall Performance of both Airlines
+
+```{r}
+calAirlineClean %>%
+  filter(Airline == "Alaska") %>%
+  group_by(Status) %>%
+  summarize(flights = sum(Count)) %>%
+  mutate(totalflights = sum(flights))
+```
+
+**Result of Alaska**
+
+```{r}
+TimelyAlaska <- (3274/3775)*100
+print(TimelyAlaska)
+
+DelayedAlaska <- (100 - TimelyAlaska)
+#Timely Alaska is the amount in which Alaska is on time 
+
+print(DelayedAlaska)
+```
+
+```{r}
+calAirlineClean %>%
+  filter(Airline == "AM WEST") %>%
+  group_by(Status) %>%
+  summarize(flights = sum(Count)) %>%
+  mutate(totalflights = sum(flights))
+```
+
+**Result of AMWEST**
+
+```{r}
+TimelyAMWEST <- (6438/7225)*100
+print(TimelyAMWEST)
+
+#Timely AMWEST show the percentage in which AM WEST is on time
+DelayedAMWEST <- (100 - TimelyAMWEST)
+
+print(DelayedAMWEST)
+
+
+```
+
+**Chart of the Airline (Overall)**
+
+```{r}
+
+Arrival_All <- data.frame(
+  Time = c("On Time", "Delayed"),
+  Alaska = c (TimelyAlaska, DelayedAlaska),
+  AMWEST = c (TimelyAMWEST, DelayedAMWEST)
+)
+
+print(Arrival_All)
+
+```
+
+We can conclude that overall AMWEST has better net track record than Alaska Airline when it comes to flight times overall with Alaska boasts about a 87% on-time arrival rate but fall slightly behind AMWEST with 89%. Although there is more than can be done like comparing the flight times for different cities.
+
+**Grouping Alaska & AMWEST by City**
+
+```{r}
+calAirlineClean %>%
+  group_by(City,Airline, Status) %>%
+  filter(Airline == "Alaska") %>%
+  summarize(flights = sum(Count)) 
+
+```
+
+```{r}
+Airline_Performance_City <- calAirlineClean %>%
+  group_by(City, Airline) %>%
+  mutate (Rate = Count/sum(Count) * 100) 
+
+print(Airline_Performance_City)
+
+Airline_Performance_City %>%
+  group_by(Airline, Status, City)
+```
+
+```{r}
+
+Airline_Delays <- Airline_Performance_City %>%
+  filter(Status == "delayed")
+
+
+ggplot(data = Airline_Delays, aes(x= City, y= Rate, fill= Airline))+
+  geom_bar(stat= "identity", position = "dodge") +
+  scale_fill_manual(values = c("Alaska" = "blue", "AM WEST" = "darkgreen"))+
+  labs(y= "% of Flights", x= "Arrival City", title= "Percentage of Delayed flights in by AMWEST + ALASKA")
+```
+
+### Conclusions
+
+As we can see in the chart above, the success rate of the airline is actually a bit more complex that we assume at first. AM WEST is shown to initially have a higher arrival rate and overall that is true. Although by looking at the information deeper we can tell that the the arrival time for cities tells a different story. AM West shows a higher percentage of delays when showing individuals cities. We can attribute AM WEST's higher success rate because its overall high number of flights in and out.
