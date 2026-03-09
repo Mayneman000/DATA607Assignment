@@ -1,0 +1,224 @@
+---
+title: "Project 2 B"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Project 2 Continutation:
+
+### Code Base Part #2 :
+
+For this part of the project I will be continue by using the remaining 2 datasets to run an analysis of the information listed in Discussion 5A earlier this semester. It will be similar to part one focusing on Cleanring the data effectively, changing the format and graphing results.
+
+```{r}
+library(tidyverse)
+```
+
+Loading Data Sets (Waste Management & Disney Parks)
+
+```{r}
+#Disney Parks
+
+disneyParks<- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/DATA/disney_parks_monthly_attendance.csv")
+
+
+#waste manganement
+
+Waste_records <- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/DATA/Solid_Waste_Management_Facilities.csv")
+```
+
+**Disney Parks: Cleaning**
+
+We can start by cleaning the Disney park data set which looks small but has a lot of issue in such a simple dataset. So I will first get a look at the data, then break down the corrections to be made.
+
+```{r}
+glimpse(disneyParks)
+```
+
+**Unify Columns and Roles:**
+
+A lot of the current month columns has mismatching names, So it would make functions harder and more difficult to read. Since all of this information regarding the Disney parks are shown to be from 2025 only, we will simple make the columns name into their months.
+
+```{r}
+disneyParks<- disneyParks %>% 
+  rename(ParkName= `Park Name` , Jan = `Jan 2025` , Feb= `Feb-2025`, April = Apr_2025, Oct = `October 2025`)
+
+```
+
+#### Organizing Dataset from long to wide format:
+
+By taking the information and pivoting the dataframe we can see how each park perform by the month. We do not need the months as columns so the only ones to keep are the ParkName and Region with the values per month shown as Revenue.
+
+Excluding ParkName and Region in order to get an overview of their values
+
+```{r}
+disneyParks_Long <- disneyParks %>%
+  pivot_longer(
+    cols = -c(ParkName, Region),
+    names_to = "month",
+    values_to = "Revenue",
+    values_transform = list(Revenue = as.character)
+  )
+
+print(disneyParks_Long)
+```
+
+Obviously the Data makes no fundamental sense and does not work becaus they are characters ans not values. So we can use a regular expression to change
+
+```{r}
+a <- disneyParks_Long %>%
+  mutate(numbers = as.numeric(str_extract(Revenue, "[0-9.]+")))
+```
+
+```{r}
+b <- a %>%
+  mutate(Revenue_Clean = case_when(
+    str_detect(Revenue, "M|million") ~ numbers *1000000,
+    str_detect(Revenue, "K")~ numbers *1000,
+    TRUE ~ numbers ))
+
+```
+
+```{r}
+disneyParks_Clean <- b %>%
+  select(ParkName, Region, month, Revenue_Clean)
+```
+
+**Visualization and Analysis**
+
+So now we need to ask "What is the highest month for income for all Disney parks?". This can be done by using the group and summarize functions provided by
+
+```{r}
+glimpse(disneyParks_Clean)
+```
+
+```{r}
+disneyParks_Clean%>%
+  group_by(month)%>%  #Grouping Data by Month
+  summarize(
+    Monthy_Revenue = sum(Revenue_Clean, na.rm = TRUE)) %>%   #Getting revenue per month & removing the NA
+  arrange(desc(Monthy_Revenue))  # organize from highest to lowest
+  
+```
+
+This table shows that July is the most successful month for all the parks with January is where the park collectively have the least visitors. We can also use this format to decide if this data also works for California
+
+```{r}
+disneyParks_Clean%>%
+  filter (Region == "California") %>%
+  group_by(month)%>%  
+  summarize(
+    Monthy_Revenue = sum(Revenue_Clean, na.rm = TRUE)) %>%  
+  arrange(desc(Monthy_Revenue)) 
+```
+
+Graphing Data
+
+-   We can show the growth of information one the parks.
+
+Group by Park
+
+```{r}
+Park_Totals <- disneyParks_Clean %>%
+  group_by(ParkName)%>%
+  summarize(
+    Total_Att = sum(Revenue_Clean, na.rm = TRUE)
+  )
+```
+
+```{r}
+ggplot(Park_Totals, aes(x= ParkName, y= Total_Att)) +
+  geom_col()+
+  labs(title = "2025 Annual Park Attendance for Each Disney Park", 
+       x = "Disney Park Location",
+       y = "Total Attendance")
+```
+
+### Final Analysis - Waste Management
+
+Introduction to data: This was a unclean data set provide by one of classmate which goes over the distribution of Waste management centers. The purpose of this analysis is to see how waste facilities are distributed by county.
+
+```{r}
+glimpse(Waste_records)
+```
+
+**Reducing Columns**
+
+This is the largest of the 3 dataset and although it is defintety untidy and has a lot of data, not all of this data is needed.
+
+To begin, States is deemed necessary because all the facilities in this dataset is from NY. Which is fairly redundant.So I decided to focus on the Columns that I do need to have which are
+
+-   Facility Name,
+
+-   Location #1 & #2
+
+-   City, Zip Code, County, Region
+
+-   Active & Waste Types
+
+**Cleaning Columns**
+
+```{r}
+
+Waste_records_reduce <- Waste_records %>%
+  select(`Facility Name`, `Location Address`, `Location Address2`, City, `Zip Code`, County, Region, Active, `Waste Types`) %>%
+  rename(FacilityName = `Facility Name`, Address = `Location Address`, Address_2 = `Location Address2`, Zip_Code = `Zip Code`, Waste_Types = `Waste Types`)
+
+```
+
+```{r}
+# join columns for the 2 address
+
+Waste_Clean <- Waste_records_reduce %>%
+  unite("Full_Address", Address, Address_2, sep = ", ", na.rm = TRUE)
+```
+
+Now with the full column we can make one final task: Which is lenghting the dataset.
+
+With our reduced data, there doesn't seems to be this big of issue to work with what we have but it would help to at least understand the type of Waste the facilities deal with.
+
+```{r}
+
+Waste_Long <- Waste_Clean %>%
+  mutate(across(c(Region, Active, Zip_Code), as.character)) %>% 
+  pivot_longer(
+    cols = c(Region, Active), 
+    names_to = "Status", 
+    values_to = "Value"
+  )
+
+
+print(Waste_Long)
+```
+
+We can then take this data from the Clean data set (It is the most effective) to count the rows about the total amount per county
+
+```{r}
+
+Waste_Total <- Waste_Clean %>%
+  group_by(County) %>%
+  summarize(
+    Total_Count = n()) %>%
+  arrange(desc(Total_Count))
+
+print(Waste_Total)
+
+```
+
+According to the table we can see that Suffolk has the highest number of waste facilities in its space. We do not see on the main NYC counties until we reach the Kings Counhtry/Brooklyn with 49. The lowest amount is New York with 7 facilities. which is understandable considering how much space is coveted in Mahattan.
+
+Graphing the amount of waste facilities by County
+
+```{r}
+
+ggplot(Waste_Total, aes(x= reorder(County, Total_Count), y=(Total_Count))) +
+  geom_col()+
+  coord_flip()+
+  labs (title = "Waste Facilities by county", y = "# of Facilities")
+
+```
+
+By showing the data we can see just how much the facilities distribution is surprising spread out. Not even but there a variety of facilities per county.
+
+End of Report
