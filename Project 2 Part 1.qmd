@@ -1,0 +1,92 @@
+---
+title: "Project #2 DATA Tidying"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Project #2
+
+### Project \# Precoding Approach
+
+For this project, the goal focuses on working with and clearing untidy data. This project consists of working with and cleaning 3 data set then collecting and creating useful, analysis for the respective data sets.
+
+This project need me to take untidy data for my classmates. This three I chosen was about Religions, Waste Management, and Disney Parks Attendance.
+
+My goals are as follows:
+
+-   Import all datasets as csv to load into the R console
+
+-   All of the data sets are wide, so I will convert the data set from wide to long format. and organize via tidyverse. Usually having na.rm to deal with missing values as they don't require a uniform average like the prior chess ELO data set earlier in the semester.
+
+-   Perform analysis and use ggplot in order to create charts for each graph. For Waste management we can tell the distribution of facilities by county. Disney Park attendance see attendance growth between Florida and California respective parks, and finally in the Religions data comparison for their donations.
+
+```{r}
+library(tidyverse)
+```
+
+## Project #2 Code Base
+
+**Data Base #1: Household income by Religion**
+
+Uploading of Data Bases
+
+```{r}
+
+Religion_donation <- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/DATA/data%20reliligion.csv")
+```
+
+```{r}
+glimpse(Religion_donation)
+```
+
+```{r}
+
+#Convert wide to long format
+
+Religion_donationLong <- Religion_donation %>%
+  pivot_longer(
+    cols = -Religion,
+    names_to = "income",
+    values_to = "frequencies"
+  ) 
+
+print(Religion_donationLong)
+```
+
+### Conversion & Analysis
+
+Comparison of the average income of religions
+
+```{r}
+ggplot(Religion_donationLong, aes(x = Religion, y = frequencies, fill = income)) +
+  geom_bar(stat = "identity", position = "fill") +
+   geom_text(aes(label = frequencies), 
+            position = position_fill(vjust = 0.5), 
+            size = 3) + 
+  coord_flip() +
+  labs(title = "Income Spread by Religion", y = "Proportion of Believers")
+```
+
+Which religions group had the highest amount of high income members?
+
+```{r}
+High_Earn <- Religion_donationLong %>%
+  filter(income == ">$150k") %>%
+  arrange(desc(frequencies)) %>%
+  mutate(prop = frequencies/ sum(Religion_donationLong$frequencies))
+
+print(High_Earn)
+```
+
+```{r}
+ggplot(High_Earn, aes(reorder(x= Religion, frequencies), y= frequencies)) +
+  geom_col()+
+  coord_flip()+
+  labs (title = "Number of 150k+ Earners by Religion", y = "Believers") +
+  theme_linedraw()
+```
+
+According to the information provided, can safety assume by raw numbers and proportions that the Catholic church has the highest number of high income earners out of the individuals surveyed. This is followed by Mainline Protestant and those who claim no affiliation. Meanwhile the Jehovah's Witness faith has the lowest number of high income Believers.
+
+Continuation of Report in Part 2
