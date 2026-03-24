@@ -1,0 +1,20 @@
+---
+title: "Assignment NYT"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## NYT API Assignment
+
+## Code Approach
+
+**Background** : For this assignment we are using our web scraping skills in order to organize and gather information from New York Times developer page. These assignments are based on the API of popular books for NYT times. For this assignment, I wanted to know "If a graphic novel has been selected for NYT best selling book?"
+
+**API Name:** Books and Records
+
+**Analysis:** I plan on using hhtr2 library in order to select and prepare the information that I have listed. Of course, it will not be performed as a raw key instead being transfered to a variable raw_nyt_book. I will also use jsonlite in order to accept the information as a json format. Then I will convert that format to a functional table.
+
+Data will be organized and then filtered by the recent 15 years in order to see the best selling books. Next an analysis will be performed in order to see the most recent graphic novels and the name and years that they have been listed as best selling books. I expect the output to be in a tibble and will present it as such.
+
+**Sharing & Publish:** I tend to publish using github as an alternative; although it may be privately published due to the API key being available in my code at this time.
