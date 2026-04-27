@@ -1,0 +1,48 @@
+---
+title: "Breakdown: Youtube Music Recommender"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Understanding: YouTube Music
+
+Music streaming is fairly common nowadays with multiple services now competing to grab user's attention regarding the latest music. With each attempt at grabbing user attention there is more and more reason to have large algorithms to show users new music and podcast to get them on the app longer and to keep their attention longer.
+
+### Scenario Analysis
+
+YouTube music is a case where music producers and you tube have different goals and business strategies. Since individuals who make music through the platform only gain a small portion of profits but their money reside is bringing listeners to concert or to buy merchandise. As an alternative you tube music makes money by taking the dividend of several advertisement payout as well as membership fees for YouTube music plus.
+
+So a scenario Analysis would look like this:
+
+**Who are your target users?**
+
+For YouTube Music, it is the subscribed members and the channel owners.
+
+**What are their (your target users) key goals ?**
+
+Key goals for most listeners is to listen to their favorite bands and music. In order to access the music online and also listen to songs/parody/covers that are not hosted on other platform such as spotify.
+
+**How can we accomplish their key goals?**
+
+Providing access to music, Out lining music that user has listened to before, Freedom for user to make fixed playlist and additional playlists that are offered.
+
+\*In the case on channel owners: To promote their music to as much interested listeners as possible and gain income from listening.
+
+### **Dive into YouTube Algorithm** 
+
+YTM(Youtube Music) uses a mixed system in order to recommend video/audio to users. 1. Content based filtering, using it tags and audio ques in music in order to compared to other songs in a profile. 2. Collaborative filtering which compared music based on the user behavior and likeness to listen to both pieces of media.
+
+YTM recommendation is well praised, despite not being too different from other streaming services. Although there is a few key differences, one of them is the leaning towards collaborative filter more than its competitors. Since you tube often has video that do not follow standard formats such a meme video (\<20 seconds) or long listening like compilations or "lo-fi" mix, it more beneficial to focus on behavior since content can vary so much.
+
+The second difference is the use of time, YTM often recommends music mixes at set times. I have noticed it myself that I get a unique mix based on the time that leave and enter work. This goes even farther has the music marked for the morning can be relaxed while the music recommended in the afternoon is significantly more upbeat
+
+Sources:
+
+<https://research.google/pubs/shorts-vs-regular-videos-on-youtube-a-comparative-analysis-of-user-engagement-and-content-creation-trends/>
+
+<https://www.music-tomorrow.com/blog/a-complete-guide-to-youtube-recommendation-algorithms-for-music-and-artists>
+
+### Recommendations for the Recommender
+
+If i would add an important change for the YouTube recommendations system is to be quicker to adjust when content is similar but not the tone for myself. One example is musical- based content, when I listed to it I am recommended musical/show tune but not all the music in the genre has the speed and tones I listen to. There should be a more definitive response when a type of music is skipped over or disliked. In addition, notification of any changes to a song or audio would help bring the music to the forefront of my attention. many times I have older song that are made unavailable due to issues with the system.
