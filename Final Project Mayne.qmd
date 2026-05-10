@@ -1,0 +1,476 @@
+---
+title: "Final Project DATA 607"
+author: "Michael Mayne"
+format: html
+editor: visual
+---
+
+## Final Project
+
+### **Overview:**
+
+Vaccination has been a consistent topic for several decades as the divide between medicine and everyday people grows. As medicine has become more commericalized and business orientated, trust that patient have on the medical and science field has eroded. Doubt regarding medical treatment is not new, when it came to concern with surgery, or pills, or specialties like the dentist. Vaccine hoax and concern has been present with the flu vaccine when there was a unfortunately popular belief that effect of the influenza vaccine lead to a possibility of autism in patients.
+
+The calumniation of distrust, anger and confusion with the heavily estranged medical system and the american people boiled down to its most significant point when it came to the COVID-19 pandemic. When a new vaccine was proposed after frankly confusing and rapidly changing CDC
+
+**Data Link:** <https://data.cdc.gov/Public-Health-Surveillance/Rates-of-COVID-19-Cases-or-Deaths-by-Age-Group-and/3rge-nu2a/about_data>
+
+**Data Link \# 2**: <https://www.cdc.gov/mmwr/volumes/70/wr/mm7037a7.htm?s_cid=mm7037a7_w>
+
+### **Description of Data** : 
+
+This data set describes an analysis of the Rates of COVID-19 outcomes based on age and type of vaccine collected. This data is start from the first week of April 2021 until teh 3rd week of September 2022,. The timeframe of this data is categorized by months and "epidemiological weeks". Each epidemiological week start with the calendar year and count each week chronologically starting with Jan 1 and resetting every Saturday. The data contains 16 columns and 1591 observations. The main variables used account for age group, vaccination status, population of vaccination, IRR for both groups and finally, whether the outcome recorded was a case of COVID or cause of death related to COVID 19.
+
+```{r}
+library(tidyverse)
+library(usmap)
+library(janitor)
+```
+
+Data Source:
+
+```{r}
+
+COVIDRaw<- read_csv("https://raw.githubusercontent.com/Mayneman000/DATA607Assignment/refs/heads/main/Rates_of_COVID-19_Cases_or_Deaths_by_Age_Group_and_Vaccination_Status_20260507.csv")
+```
+
+## Data Cleaning
+
+#### Organizing and viewing all deaths
+
+```{r}
+COVIDRaw <- clean_names(COVIDRaw) #Remove spaces from the data set
+  
+```
+
+```{r}
+#Summary of all deaths of COVID 19 regardless of vaccine type/age
+
+COVID_Deaths_All <- COVIDRaw %>%
+  filter(outcome ==  "death", vaccine_product == "all_types", age_group == "all_ages_adj") %>%
+  group_by(age_group) %>%
+  arrange(mmwr_week)
+```
+
+```{r}
+glimpse(COVID_Deaths_All)
+
+```
+
+```{r}
+
+#Covid Deaths organized by vaccination status 
+COVID_Deaths_AllLong <- pivot_longer(COVID_Deaths_All,
+                                     cols = c("vaccinated_with_outcome","unvaccinated_with_outcome"),
+                                     names_to = "Vaccine_Status",
+                                     values_to = "Outcome_Raw" )
+                                     
+                                     
+```
+
+```{r}
+# Total sum of Deaths by vaccination status 
+
+COVID_Deaths_AllCount <- COVID_Deaths_AllLong %>%
+  group_by(Vaccine_Status) %>%
+  summarize(Total_count = sum(Outcome_Raw, na.rm = TRUE))
+
+```
+
+```{r}
+#Average rate of Deaths by Vaccination Status 
+
+
+COVID_Deaths_IRLong <- pivot_longer(COVID_Deaths_All,
+                                     cols = c("age_adjusted_vax_ir","age_adjusted_unvax_ir"),
+                                     names_to = "Vaccine_Status",
+                                     values_to = "Incident_rate_aa")
+
+
+COVID_Deaths_IRCount <- COVID_Deaths_IRLong %>%
+  group_by(Vaccine_Status) %>%
+  summarize(avg_rate = mean(Incident_rate_aa, na.rm = TRUE))
+
+
+```
+
+#### Organize Death by Age group
+
+```{r}
+COVID_Deaths_Years <- COVIDRaw %>%
+  filter(outcome ==  "death", vaccine_product == "all_types", age_group !="all_ages_adj") %>%
+  group_by(age_group) %>%
+  select(-c(age_adjusted_vax_ir, age_adjusted_unvax_ir, age_adjusted_irr)) %>%
+  arrange(mmwr_week)
+```
+
+```{r}
+
+#Total count via age group
+
+order_of_ages <- c("5-11", "12-17" ,"18-29" ,"30-49" ,"50-64" , "65-79", "80+")
+
+COVID_Deaths_AgeCount <- COVID_Deaths_Years%>%
+  group_by(age_group) %>%
+  summarize(Total_vax = sum(vaccinated_with_outcome, na.rm = TRUE),
+           Total_unvax= sum(unvaccinated_with_outcome, na.rm = TRUE)) %>%
+  arrange(match(age_group,order_of_ages))
+
+
+```
+
+```{r}
+#Count of deaths by Age and status 
+
+COVID_Deaths_AgeCountL <- COVID_Deaths_AgeCount %>%
+     pivot_longer(
+         cols = c(Total_vax, Total_unvax), 
+         names_to = "Vaccine_Status", 
+         values_to = "Deaths"
+     ) %>%  
+   mutate(age_group = fct_relevel(age_group, 
+                                 "5-11", "12-17", "18-29", 
+                                 "30-49", "50-64", "65-79", "80+"))
+  
+```
+
+#### Incident rate by Age Group 
+
+```{r}
+
+COVID_Deaths_IRCount_Years <- COVID_Deaths_Years %>%
+  group_by(age_group) %>%
+  summarize(Avg_vax_ir = mean(crude_vax_ir, na.rm = TRUE),
+           Avg_unvax_ir= mean(crude_unvax_ir, na.rm = TRUE)) %>%
+  arrange(match(age_group,order_of_ages))
+
+
+COVID_Deaths_IRYears<- COVID_Deaths_IRCount_Years %>%
+     pivot_longer(
+         cols = c(Avg_vax_ir, Avg_unvax_ir), 
+         names_to = "Vaccine_Status", 
+         values_to = "Incident_rate_flat"
+     )
+
+
+
+
+```
+
+### Organization by Vaccine Type
+
+#### The total deaths and Death Rate based on Vaccine type
+
+```{r}
+#Cleaning Data set for groups
+
+
+COVID_Deaths_VaccineType <- COVIDRaw %>%
+  filter(outcome ==  "death", vaccine_product != "all_types", age_group =="all_ages_adj") %>% #Removing all_types for vaccine product 
+  group_by(age_group) %>%
+  arrange(mmwr_week)
+
+```
+
+```{r}
+COVID_Deaths_VaccineCount <- COVID_Deaths_VaccineType %>%
+  group_by(vaccine_product) %>%
+  summarize(vax_type_ir = mean(age_adjusted_vax_ir, na.rm = TRUE))
+
+```
+
+```{r}
+#Adding an additional data point for a comparison
+
+COVID_Deaths_VaccineFull<- COVID_Deaths_VaccineCount %>%
+  add_row(vaccine_product = "N/A", vax_type_ir = 6.8477280)
+
+
+
+```
+
+## Visualizations
+
+This show the distinct visualization of the data into several distinct graphs.
+
+```{r}
+#Outline of Raw # of Deaths per vaccination
+
+ggplot(data = COVID_Deaths_AllLong , aes(x= mmwr_week, y = Outcome_Raw , color = Vaccine_Status))+
+    scale_color_manual(values = c("vaccinated_with_outcome" = "lightblue",
+                             "unvaccinated_with_outcome" = "blue"
+                            ))+
+  geom_line(linewidth = 1.5)+
+  labs(x = "Time",
+       y = "# of Deaths")+
+  theme_minimal()
+```
+
+### Total Deaths between Vaccinated and Unvaccinated groups
+
+```{r}
+ggplot(data = COVID_Deaths_AllCount, aes( x = Vaccine_Status, y = Total_count, fill = Vaccine_Status))+
+  scale_fill_manual(values = c("vaccinated_with_outcome" = "lightblue",
+                             "unvaccinated_with_outcome" = "blue"
+                            ))+
+  geom_col()+
+  theme_minimal()
+```
+
+#### Outline of Death rate during time frame via vaccination
+
+```{r}
+ggplot(data = COVID_Deaths_IRLong , aes(x= mmwr_week, y = Incident_rate_aa , color = Vaccine_Status))+
+  geom_line(linewidth = 1.5)+
+  scale_color_manual(values = c("age_adjusted_unvax_ir" = "darkgray",
+                             "age_adjusted_vax_ir" = "steelblue"
+                            ))+
+  labs(x = "Time",
+       y = "Death Rate")+
+  theme_minimal()
+```
+
+### Total Death Rate comparison 
+
+```{r}
+
+ggplot(data = COVID_Deaths_IRCount, aes( x = Vaccine_Status, y = avg_rate, fill = Vaccine_Status))+
+  scale_fill_manual(values = c("age_agjusted_vax_ir" = "gray",
+                             "age_adjusted_unvax_ir" = "lightblue"
+                            )) +
+  geom_col()+
+  theme_minimal()
+```
+
+Visualization via Age
+
+```{r}
+ggplot(data = COVID_Deaths_AgeCountL, aes(x = age_group, y = Deaths, fill= Vaccine_Status))+
+  coord_flip()+
+  scale_fill_manual(values = c("Total_vax" = "lightblue",
+                             "Total_unvax" = "blue"
+                            ))+
+  geom_col( stat= "identity", position = "dodge")+
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = COVID_Deaths_IRYears, aes(x = age_group, y = Incident_rate_flat, fill= Vaccine_Status))+
+  coord_flip()+
+  scale_fill_manual(values = c("Avg_vax_ir" = "lightblue",
+                             "Avg_unvax_ir" = "blue"
+                            ))+
+  geom_col( stat= "identity", position = "dodge")+
+  theme_minimal()
+```
+
+Visualization for Vaccine Type
+
+```{r}
+ggplot(data = COVID_Deaths_VaccineCount, aes( x = vaccine_product, y = vax_type_ir, fill = vaccine_product))+
+  scale_fill_manual(values = c("Janssen" = "magenta",
+                             "Moderna" = "red",
+                             "Pfizer" = "purple"
+                            ))+
+  labs( x = "Vaccine Group",
+        y = "Incidient Rate per type")+
+  geom_col()+
+  theme_minimal()
+
+```
+
+**Comparison of the vaccine type to the full value**
+
+```{r}
+ggplot(data = COVID_Deaths_VaccineFull, aes( x = reorder(vaccine_product, vax_type_ir), y = vax_type_ir, fill = vaccine_product))+
+  scale_fill_manual(values = c("Janssen" = "magenta",
+                             "Moderna" = "red",
+                             "Pfizer" = "purple",
+                             "N/A" = "darkred"
+                            ))+
+  labs( x = "Vaccine Group",
+        y = "Incidient Rate per type")+
+  geom_col()+
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = COVID_Deaths_VaccineType , aes(x= mmwr_week, y = age_adjusted_vax_ir, color = vaccine_product))+
+   scale_color_manual(values = c("Janssen" = "magenta",
+                             "Moderna" = "red",
+                             "Pfizer" = "purple"
+                            ))+
+  geom_line(linewidth = 1.5)+
+  labs(x = "Time",
+       y = "Death Rate")+
+  theme_minimal()
+```
+
+```{r}
+
+Unvaccinated_average_IR <- COVID_Deaths_IRCount$avg_rate[1]
+
+
+
+ggplot(data = COVID_Deaths_VaccineType , aes(x= mmwr_week, y = age_adjusted_vax_ir, color = vaccine_product))+
+  geom_hline(yintercept = Unvaccinated_average_IR, linewidth = 2.0, linetype = "dashed", color = "darkred")+
+  scale_color_manual(values = c("Janssen" = "magenta",
+                             "Moderna" = "red",
+                             "Pfizer" = "purple"
+                            ))+
+  geom_line(linewidth = 1.5)+
+  labs(x = "Time",
+       y = "Death Rate")+
+  theme_minimal()
+
+
+
+
+```
+
+## Organizing and Cleaning all Cases
+
+### Getting Data for Cases
+
+```{r}
+
+C19_Cases_All <- COVIDRaw %>%
+  filter(outcome ==  "case", vaccine_product == "all_types", age_group == "all_ages_adj") %>%
+  group_by(month) %>%
+  arrange(mmwr_week)
+
+
+```
+
+Long Format for Total \# of Cases
+
+```{r}
+C19_Cases_AllLong <- pivot_longer(C19_Cases_All,
+                                     cols = c("vaccinated_with_outcome","unvaccinated_with_outcome"),
+                                     names_to = "Vaccine_Status",
+                                     values_to = "Outcome_Raw" )
+                                     
+```
+
+Data regarding Case Infection Rate
+
+```{r}
+C19_Cases_IRLong <- pivot_longer(C19_Cases_All,
+                                     cols = c("age_adjusted_vax_ir","age_adjusted_unvax_ir"),
+                                     names_to = "Vaccine_Status",
+                                     values_to = "Incident_rate_aa")
+
+
+C19_Cases_IRCount <- C19_Cases_IRLong %>%
+  group_by(Vaccine_Status) %>%
+  summarize(avg_rate = mean(Incident_rate_aa, na.rm = TRUE))
+```
+
+#### Cases Visualization
+
+```{r}
+ggplot(data = C19_Cases_AllLong , aes(x= mmwr_week, y = Outcome_Raw, color = Vaccine_Status))+
+  geom_line(linewidth = 1.5)+
+  scale_color_manual(values = c("vaccinated_with_outcome" = "darkgray",
+                             "unvaccinated_with_outcome" = "green"
+                            ))+
+  labs(x = "Time",
+       y = "# of Cases")+
+  theme_minimal()
+
+```
+
+```{r}
+#Case rate over time 
+
+ggplot(data = C19_Cases_IRLong , aes(x= mmwr_week, y = Incident_rate_aa , color = Vaccine_Status))+
+  geom_line(linewidth = 1.5)+
+  scale_color_manual(values = c("age_adjusted_vax_ir" = "lightgray",
+                             "age_adjusted_unvax_ir" = "darkgreen"
+                            )) +
+  labs(x = "Time",
+       y = "Death Rate")+
+  theme_minimal()
+
+```
+
+```{r}
+
+#Total Cases during high period 
+
+ggplot(data = C19_Cases_IRCount, aes( x = Vaccine_Status, y = avg_rate, fill = Vaccine_Status))+
+  scale_fill_manual(values = c("age_adjusted_vax_ir" = "darkgray",
+                             "age_adjusted_unvax_ir" = "green"
+                            )) +
+  geom_col()+
+  theme_minimal()
+```
+
+# Quantitative Data Analysis
+
+We have see visually the difference and comparison between the 2 groups. Now it is time to see the statistical difference between the 2 groups.
+
+We can do this by starting a proposing a poisson model type test to compare the values
+
+```{r}
+#Collect a sum of the population size 
+
+COVID_Deaths_CountPop <- COVID_Deaths_AllCount %>%
+   mutate(
+    pop_vax = (max(C19_Cases_AllLong$fully_vaccinated_population)), #Records the final count made with the group population 
+    pop_unvax = (min(C19_Cases_AllLong$unvaccinated_population))  #Records the final count made with the unvax population - It decreases steadily over the time frame 
+  )
+
+
+Total_model_pop = ((COVID_Deaths_CountPop$pop_vax)+(COVID_Deaths_CountPop$pop_unvax))
+
+print(Total_model_pop)
+
+```
+
+```{r}
+#Measuring Statisical difference between 
+
+
+ratemodel <- glm(Total_count ~ Vaccine_Status + offset(log(Total_model_pop)),
+             family = "poisson", 
+             data = COVID_Deaths_CountPop)
+
+summary(ratemodel)
+```
+
+Statement: By running the "poisson" test model the model and rebuilding from base we can confirm that the total model has a significant smaller p intercept than 0.05 showing that the 2 rates a statstically different from each other. Although note that this data does not account all members in the united states, total population in the united states in 2021 was estimated at 332 million people which is a lot more than the \~ 200 million people that this data calculates and accounts for.
+
+Reverse- Finding the information and Intercept of the model
+
+```{r}
+exp(coef(ratemodel))
+
+
+```
+
+By take the exponent of the coefficient of our rate model we are able to see that vaccinated people had a .45 times the rate of vaccinated people. By taking its inverse we can assume, that vaccination provided an overall 55% lower rate of death than those who are un-vaccinated.
+
+## Conclusions:
+
+In short, by running through out result we are able to learn a few things from this data provided by the CDC. To begin a larger population of the United states were vaccinated in this time frame than vaccinated. Which is obvious but it also displays that about 25% of the population was not vaccinated for various reasons. Although the amount of vaccinated people did increase over the time of the roll out.
+
+In terms of demographic of the population studied, a majority of deaths happened to the elderly individuals starting from age 50 and picking up. Although we can assume a large amount is the result of general aging adding to the complication of COVID 19 rather than COVID itself.
+
+Regarding the deaths, The number of deaths is somewhat different between both vaccinated and unvaccinated populations but when comparing it to the Incident you get the full picture. Both the incident rate and overall deaths did spike during the first few month of the data set marking a large outbreak which effected several people. Overall ratio between vaccinated and unvaccinated deaths were about 6 times against those who were unvaccinated. Although the original data set shows calculated age adjusted ratios having up to 20 times the rate of death.
+
+Regarding cases without deaths it is much closer, as the vaccine may have reduce the amount of severe symptoms that does not stop several variants that became present. The most notable was the "delta" variant which became rampant in the United States around June of 2021.
+
+In regards to deaths and each vaccine version, we are able to see that any vaccine type is provides a lower rate of death than if one was to be unvaccinated. Between the 3 types provided (Moderna, Jansenn\[J&J\] , Pfizer) Jansenn showed to have the highest incident rate followed by Pfizer and Moderna with the lowest.
+
+Overall we can assume that the risk for all individuals were higher if they were not vaccinated. Although vaccination did not overwhelmingly stop the rate of cases, it was still much lower than those who were unvaccinated. The risk become most pronounce for the elderly as they have the most deaths but also have the most change in population depending on vaccination status.
+
+#### **Exceptions:** There are few exceptions that must be made to this analysis:
+
+- **Full Population cannot be accounted for:** Individuals who are not the census or those who are undocumented may not show up on the data, skewing possible results.
+
+- **Paired Behavior:** Individuals who not have concern for vaccination may be reluctant to social distance and wear masks, which can be additional causes to their exposure rate outside of the vaccine mandate.
+
+- **Pending Research:** Despite it being 6 six years since COVID 19 emergence, there is a lot to still be found regarding the mechanic of the virus. Thus many deaths, especially for the elderly can possibly be mis-attributed to COVID
+
+End of Report.
