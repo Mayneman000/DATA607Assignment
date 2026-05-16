@@ -1,0 +1,51 @@
+Mineral,Status,Main_Source ,Affliation_Main,Secondary_Source,Affliation_Secondary,Majority_Exported>50%
+Aluminum,Critical,Canada,Ally,U.A.E Russia China,Negative,N
+Antimony,Critical,China,Competitor,N/A,N/A,Y
+Arsenic,Critical,China,Competitor,Morroco Belgium ,Neutral,Y
+Barite,Critical,China ,Competitor,India Morocco Mexico,Positive,Y
+Beryllium,Critical,United States,N/A,N/A,N/A,N
+Bismuth,Critical,China ,Competitor,South Korea Mexico Belgium,Positive,Y
+Cerium,Critical,Japan,Ally,N/A,N/A,Y
+Cesium,Critical,Germany ,Ally,China,Negative,Y
+Chromium,Critical,South Africa,Neutral,Kazakhstan Russia Mexico,Mixed,Y
+Cobalt,Critical,Norway ,Ally,Canada Japan Finland,Postitive,Y
+Dysprosium,Critical,United States,N/A,N/A,N/A,N
+Erbium,Critical,United States,N/A,N/A,N/A,N
+Europium,Critical,United States,N/A,N/A,N/A,N
+Fluorspar,Critical,Mexico,N/A,Vietnam South Africa Canada,Neutral,Y
+Gadolinium,Critical,China,Competitor,N/A,N/A,Y
+Gallium,Critical,China ,Competitor,United Kingdom Germany Ukraine,Postitive,Y
+Germanium,Critical,China ,Competitor,Belgium Germany Russia,Mixed,Y
+Graphite,Critical,China ,Competitor,Mexico Canada India,Postitive,Y
+Hafnium,Critical,United States,N/A,N/A,N/A,N
+Holmium,Critical,China,Competitor,N/A,N/A,Y
+Indium,Critical,China ,Competitor,Canada South Korea France,Postitive,Y
+Iridium,Critical,South Africa,Neutral,Canada,Postitive,Y
+Lanthanum,Critical,United States,N/A,N/A,N/A,N
+Lithium,Critical,Argentina ,Neutral,Chile China Russia,Negative,N
+Lutetium,Critical,China ,Competitor,Germany South Korea,Positive,Y
+Magnesium,Critical,Canada,Ally,Israel Mexico,Positive,N
+Manganese,Critical,Gabon,Ally,South Africa Australia Georgia,Positive,Y
+Neodymium,Critical,United States,N/A,N/A,N/A,N
+Nickel,Critical,Canada,Ally,Norway Finland Australia,Positive,N
+Niobium,Critical,Brazil ,Neutral,Canada,Positive,Y
+Palladium,Critical,Russia ,Competitor,South Africa Germany,Positive,N
+Platinum,Critical,South Africa ,Neutral,Germany Switzerland Italy,Positive,Y
+Praseodymium,Critical,United States,N/A,N/A,N/A,N
+Rhodium,Critical,South Africa ,Neutral,N/A,N/A,Y
+Rubidium,Critical,Germany,Ally,N/A,N/A,Y
+Ruthenium,Critical,N/A,N/A,N/A,N/A,N
+Samarium,Critical,China,Competitor,United States,N/A,Y
+Scandium,Critical,Europe,Ally,China Japan Russia,Negative,Y
+Tantalum,Critical,China,Competitor,Germany Australia Indonesia,Positive,Y
+Tellurium,Critical,Canada,Ally,Germany China Philippines,Mixed,Y
+Terbium,Critical,United States,N/A,N/A,N/A,N
+Thulium,Critical,China,Competitor,N/A,N/A,Y
+Tin,Critical,Indonesia ,N/A,Peru Malaysia Bolivia,Mixed,Y
+Titanium,Critical,Japan ,Ally,Kazakhstan Ukraine,Mixed,Y
+Tungsten,Critical,China,Competitor,Bolivia Germany Canada,Postitive,Y
+Vanadium,Critical,Canada,Ally,China Brazil South Africa,Mixed,Y
+Ytterbium,Critical,China,Competitor,Germany Chile and South Korea,Positive,Y
+Yttrium,Critical,China,Competitor,South Korea Japan,Positive,Y
+Zinc,Critical,Canada,Ally,Mexico Peru Spain,Neutral,Y
+Zirconium,Critical,South Africa,Neutral,Senegal Australia Russia,Mixed,N
